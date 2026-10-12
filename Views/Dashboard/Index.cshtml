@@ -1,0 +1,127 @@
+@{ViewData["Title"]="Dashboard";}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h1 class="page-title">Sales Dashboard</h1>
+    <p class="text-muted mb-0">Performance summary for the selected period.</p>
+  </div>
+  <span class="badge text-bg-primary">@((User.IsInRole("Admin")?"Admin":User.IsInRole("Manager")?"Manager":"Sales Executive"))</span>
+</div>
+
+<form method="get" class="card p-3 mb-4">
+  <div class="row g-2 align-items-end">
+    <div class="col-md-4">
+      <label class="form-label">From</label>
+      <input type="date" name="from" value="@ViewBag.DateFrom" class="form-control" />
+    </div>
+    <div class="col-md-4">
+      <label class="form-label">To</label>
+      <input type="date" name="to" value="@ViewBag.DateTo" class="form-control" />
+    </div>
+    <div class="col-md-4">
+      <button type="submit" class="btn btn-primary w-100">Apply Range</button>
+    </div>
+  </div>
+</form>
+
+<div class="alert alert-light border mb-4">
+  <strong>Range:</strong> @ViewBag.RangeLabel
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-xl-3"><div class="card dashboard-stat-card p-3 h-100"><div class="muted-label">Customers in range</div><div class="metric">@ViewBag.Customers</div></div></div>
+  <div class="col-6 col-xl-3"><div class="card dashboard-stat-card p-3 h-100"><div class="muted-label">Leads in range</div><div class="metric">@ViewBag.Leads</div></div></div>
+  <div class="col-6 col-xl-3"><div class="card dashboard-stat-card p-3 h-100"><div class="muted-label">Qualified Leads</div><div class="metric">@ViewBag.QualifiedLeads</div></div></div>
+  <div class="col-6 col-xl-3"><div class="card dashboard-stat-card p-3 h-100"><div class="muted-label">Open Pipeline</div><div class="metric">@(((decimal)ViewBag.Pipeline).ToString("C0", System.Globalization.CultureInfo.GetCultureInfo("en-IN")))</div></div></div>
+
+  <div class="col-6 col-xl-3"><div class="card dashboard-stat-card p-3 h-100"><div class="muted-label">Win Rate</div><div class="metric">@(((decimal)ViewBag.WinRate).ToString("0.##"))%</div></div></div>
+  <div class="col-6 col-xl-3"><div class="card dashboard-stat-card p-3 h-100"><div class="muted-label">Conversion Rate</div><div class="metric">@(((decimal)ViewBag.ConversionRate).ToString("0.##"))%</div></div></div>
+  <div class="col-6 col-xl-3"><div class="card dashboard-stat-card p-3 h-100"><div class="muted-label">Average Deal</div><div class="metric">@(((decimal)ViewBag.AverageDeal).ToString("C0", System.Globalization.CultureInfo.GetCultureInfo("en-IN")))</div></div></div>
+  <div class="col-6 col-xl-3"><div class="card dashboard-stat-card p-3 h-100"><div class="muted-label">Won Revenue</div><div class="metric">@(((decimal)ViewBag.TotalRevenue).ToString("C0", System.Globalization.CultureInfo.GetCultureInfo("en-IN")))</div></div></div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-3"><div class="card dashboard-stat-card p-3 h-100"><div class="muted-label">Total Customers</div><div class="metric">@ViewBag.TotalCustomers</div></div></div>
+  <div class="col-md-3"><div class="card dashboard-stat-card p-3 h-100"><div class="muted-label">Total Leads</div><div class="metric">@ViewBag.TotalLeads</div></div></div>
+  <div class="col-md-3"><div class="card dashboard-stat-card p-3 h-100"><div class="muted-label">Total Opportunities</div><div class="metric">@ViewBag.TotalOpportunities</div></div></div>
+  <div class="col-md-3"><div class="card dashboard-stat-card p-3 h-100"><div class="muted-label">New Leads</div><div class="metric">@ViewBag.NewLeads</div></div></div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-6"><div class="card dashboard-chart-card p-3"><h5 class="dashboard-card-title">Lead Status Mix</h5><div class="chart-panel"><canvas id="leadChart" class="dashboard-chart"></canvas></div></div></div>
+  <div class="col-md-6"><div class="card dashboard-chart-card p-3"><h5 class="dashboard-card-title">Opportunity Stage Distribution</h5><div class="chart-panel"><canvas id="oppChart" class="dashboard-chart"></canvas></div></div></div>
+  <div class="col-12"><div class="card dashboard-chart-card p-3"><h5 class="dashboard-card-title">Monthly Won Revenue</h5><div class="chart-panel chart-panel--wide"><canvas id="monthlyChart" class="dashboard-chart"></canvas></div></div></div>
+</div>
+
+<div class="row g-3">
+  <div class="col-md-6">
+    <div class="card p-3 h-100">
+      <h5>Sales activity</h5>
+      <ul class="mb-0 ps-3">
+        <li>Open opportunities: @ViewBag.OpenOpportunities</li>
+        <li>Won deals: @ViewBag.Won</li>
+        <li>Lost deals: @ViewBag.Lost</li>
+        <li>Overdue follow-ups: @ViewBag.OverdueFollowUps</li>
+      </ul>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card p-3 h-100">
+      <h5>Pipeline health</h5>
+      <ul class="mb-0 ps-3">
+        <li>Open leads: @ViewBag.OpenLeads</li>
+        <li>Converted leads: @ViewBag.ConvertedLeads</li>
+        <li>Upcoming follow-ups in 7 days: @ViewBag.UpcomingFollowUps</li>
+        <li>Sales pipeline value: @(((decimal)ViewBag.Pipeline).ToString("C0", System.Globalization.CultureInfo.GetCultureInfo("en-IN")))</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+@section Scripts {
+<script>
+const commonChartOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  animation: { duration: 250 },
+  interaction: { intersect: false, mode: 'nearest' },
+  plugins: { legend: { labels: { usePointStyle: true, boxWidth: 8 } } }
+};
+
+new Chart(document.getElementById('leadChart'), {
+  type: 'doughnut',
+  data: {
+    labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize((string[])ViewBag.LeadLabels)),
+    datasets: [{ data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize((int[])ViewBag.LeadValues)), backgroundColor: ['#0d6efd','#198754','#ffc107','#dc3545','#6c757d'], borderWidth: 0 }]
+  },
+  options: {
+    ...commonChartOptions,
+    plugins: { ...commonChartOptions.plugins, legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8 } } }
+  }
+});
+
+new Chart(document.getElementById('oppChart'), {
+  type: 'bar',
+  data: {
+    labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize((string[])ViewBag.StageLabels)),
+    datasets: [{ label: 'Opportunities', data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize((int[])ViewBag.StageValues)), backgroundColor: ['#0d6efd','#6f42c1','#20c997','#198754','#dc3545'], borderRadius: 6 }]
+  },
+  options: {
+    ...commonChartOptions,
+    scales: { y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: 'rgba(148, 163, 184, 0.12)' } }, x: { grid: { display: false } } }
+  }
+});
+
+new Chart(document.getElementById('monthlyChart'), {
+  type: 'line',
+  data: {
+    labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize((string[])ViewBag.MonthLabels)),
+    datasets: [{ label: 'Won revenue', data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize((double[])ViewBag.MonthValues)), borderColor: '#0d6efd', backgroundColor: 'rgba(13,110,253,0.15)', fill: true, tension: 0.35, borderWidth: 2.5, pointRadius: 3, pointHoverRadius: 5 }]
+  },
+  options: {
+    ...commonChartOptions,
+    plugins: { ...commonChartOptions.plugins, legend: { display: false } },
+    scales: { y: { beginAtZero: true, ticks: { callback: (value) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(value) }, grid: { color: 'rgba(148, 163, 184, 0.12)' } }, x: { grid: { display: false } } }
+  }
+});
+</script>
+}

@@ -1,0 +1,2 @@
+@model IEnumerable<Activity>
+@{ViewData["Title"]="Activities";}<div class="d-flex justify-content-between mb-3"><h1 class="page-title">Activities</h1><a class="btn btn-primary" asp-action="Create">+ New activity</a></div><div class="card p-2 table-responsive"><table class="table"><thead><tr><th>Date</th><th>Type</th><th>Subject</th><th>Description</th><th>Status</th></tr></thead><tbody>@foreach(var a in Model){<tr><td>@a.ActivityDate.ToShortDateString()</td><td>@a.ActivityType</td><td>@a.Subject</td><td>@a.Description</td><td>@a.Status</td></tr>}</tbody></table></div>
